@@ -1,0 +1,18 @@
+---
+title: "Q1_figure"
+author: "Anthony Johnson"
+date: "4/28/2022"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+bball <- read_rds("./data/baseball.rds")
+(b = bball %>%
+  mutate(Date = as.character(Date), Date = ymd(Date), Day = factor(Day, ordered = TRUE), Day = ordered(Day, levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")), Attendance = as.numeric(Attendance), DayNight = factor(DayNight)))
+```
+
