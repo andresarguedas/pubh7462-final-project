@@ -1,0 +1,54 @@
+baseURL: /
+languageCode: en-us
+title: Baseball through the Ages
+theme: hugo-serif-theme
+module:
+  hugoVersion:
+    extended: yes
+    min: 0.55.0
+params:
+  colors:
+    black: '#002D72'
+    grey: '#5C5A5A'
+    primary: '#D50032'
+    white: '#ffffff'
+    white_offset: '#F9F6FB'
+  fonts:
+    base: Lato
+    google_fonts: https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Playball&display=swap
+    heading: Playball
+  #footer:
+  #  copyright_text: Free Hugo theme by <a class="zerostatic" href="https://www.zerostatic.io">www.zerostatic.io</a>
+  google_analytics_id: ''
+  google_tag_manager_id: ''
+  homepage:
+    show_contact_box: no
+    show_services_button: yes
+  logo:
+    alt: Btta - Baseball through the Ages
+    desktop: images/logo/logo.svg
+    desktop_height: 32px
+    mobile: images/logo/logo-mobile.svg
+    mobile_height: 36px
+  team:
+    summary_large_truncate: 120
+menu:
+  footer:
+    - name: Home
+      url: /
+      weight: 1
+    - name: Contact
+      url: /contact/
+      weight: 2
+  main:
+    - name: About Us
+      url: /about_us/
+      weight: 1
+    - name: Data
+      url: /data/
+      weight: 2
+    - name: Contact
+      url: /contact/
+      weight: 4
+    - name: Dashboard
+      url: /dashboard/example.html

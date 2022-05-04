@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="233"
+   height="64"
+   viewBox="0 0 61.647915 16.933334"
+   version="1.1"
+   id="svg5"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2">
+    <rect
+       x="12.275428"
+       y="25.914792"
+       width="139.12151"
+       height="50.465648"
+       id="rect3597" />
+  </defs>
+  <g
+     id="layer1">
+    <text
+       xml:space="preserve"
+       transform="matrix(0.25556787,-0.0684792,0.0684792,0.25556787,-5.1794345,1.8109505)"
+       id="text3595"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect3597);fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.00157;stroke-miterlimit:4;stroke-dasharray:none"><tspan
+         x="12.275391"
+         y="62.407275"
+         id="tspan114688"><tspan
+           style="font-family:Playball;-inkscape-font-specification:'Playball, Normal';fill:#002d72;stroke:#000000"
+           id="tspan114686">Baseball</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.93889px;line-height:0.75;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+       x="30.393703"
+       y="21.056324"
+       id="text56130"
+       transform="rotate(-15)"><tspan
+         id="tspan56128"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:Playball;-inkscape-font-specification:'Playball, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ffffff;stroke:#000000;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         x="30.393703"
+         y="21.056324">through</tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:Playball;-inkscape-font-specification:'Playball, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ffffff;stroke:#000000;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         x="30.393703"
+         y="24.895473"
+         id="tspan78488">the</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+       x="36.294628"
+       y="24.09145"
+       id="text111312"
+       transform="rotate(-15)"><tspan
+         id="tspan111310"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;font-family:Playball;-inkscape-font-specification:'Playball, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#d50032;fill-opacity:1;stroke:#000000;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         x="36.294628"
+         y="24.09145">Ages</tspan></text>
+  </g>
+</svg>
