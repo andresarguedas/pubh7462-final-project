@@ -1,0 +1,108 @@
+---
+title: "hitdashboard"
+author: "Eric Connor"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include = FALSE, echo = FALSE}
+library(tidyverse)
+library(lubridate)
+library(gt)
+library(paletteer)
+library(plotly)
+library(flexdashboard)
+library(forcats)
+library(DataExplorer)
+library(stringr)
+library(RColorBrewer)
+
+#Working directory for .RMD
+knitr::opts_knit$set(echo = TRUE,
+                     root.dir = rprojroot::find_rstudio_root_file())
+
+#Controlling figure output in markdown
+knitr::opts_chunk$set(
+#  fig.height =   
+  fig.width = 6,
+#  fig.asp = .5,
+  out.width = "90%",
+#  out.height = 
+ fig.align  = "center",
+  cache = FALSE,
+  eval  = TRUE,
+  echo  = TRUE,
+  warning = FALSE
+)
+
+#Set Theme for ggplot2
+#theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5), legend.position = "bottom"))
+
+#Set Scientific notation output and decimal places for knitr
+options(scipen = 999)
+options(digits = 4)
+options(dplyr.summarise.inform = FALSE)
+
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+baseball <- readRDS("C:/Users/econn/OneDrive/School/Minnesota/Spring 2022/PubH 7462/Project/Years of Data/baseball.RDS")
+
+```
+
+Column {data-width=1000}
+-----------------------------------------------------------------------
+
+### Number of Types of Hits by Regular Season vs. Postseason
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+
+graph5 <- baseball %>%
+  filter(year >= 1910) %>%
+  mutate(numPitchers = VisitNumPitchers + HomeNumPitchers,
+         postseason = fct_recode(factor(postseason),
+                                 "Postseason" = "1",
+                                 "Regular Season" = "0"),
+         year = as.numeric(year),
+         Single = (VisitH - VisitDBL - VisitTRI - VisitHR) + (HomeH - HomeDBL - HomeTRI - HomeHR),
+         Double = VisitDBL + HomeDBL,
+         Triple = VisitTRI + HomeTRI,
+         HR = VisitHR + HomeHR) %>%
+  select(Date, year, postseason, Single, Double, Triple, HR) %>%
+  group_by(year, postseason) %>%
+  summarise(SingleAvg = mean(Single),
+            DoubleAvg = mean(Double),
+            TripleAvg = mean(Triple),
+            HRAvg = mean(HR)) %>%
+  pivot_longer(cols = c("SingleAvg", "DoubleAvg", "TripleAvg", "HRAvg"), names_to = "HitType", values_to = "Number") %>%
+  mutate(HitType = fct_relevel(fct_recode(factor(HitType),
+                              "Single" = "SingleAvg",
+                              "Double" = "DoubleAvg",
+                              "Triple" = "TripleAvg",
+                              "Home Run" = "HRAvg"), 
+                              "Single", 
+                              "Double", 
+                              "Triple", 
+                              "Home Run")) %>%
+  rename("Hit Type" = HitType,
+         "Year" = year) %>%
+  ggplot(aes(x = Year, y = Number, color = `Hit Type`)) +
+  geom_line() +
+  facet_grid(`Hit Type` ~ postseason) +
+  ggtitle("Average Number of Hit Type per Regular Season vs. Postseason Game, 1910-2021") +
+  theme_bw() +
+  scale_x_continuous(breaks = seq(1910, 2021, by = 25)) +
+  scale_color_manual("Hit Type", values = c("dodgerblue1", "dodgerblue1", "dodgerblue1", "dodgerblue1")) +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        strip.text.x = element_text(color = "white", face = "bold"),
+        strip.text.y = element_text(angle = 0, color = "white", face = "bold"),
+        strip.background = element_rect(colour = "black", fill = "dodgerblue4"))
+
+ggplotly(graph5)
+
+```
