@@ -1,0 +1,208 @@
+---
+title: "postdashboard"
+author: "Eric Connor"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include = FALSE, echo = FALSE}
+library(tidyverse)
+library(lubridate)
+library(gt)
+library(paletteer)
+library(plotly)
+library(flexdashboard)
+library(forcats)
+library(DataExplorer)
+library(stringr)
+library(RColorBrewer)
+
+#Working directory for .RMD
+knitr::opts_knit$set(echo = TRUE,
+                     root.dir = rprojroot::find_rstudio_root_file())
+
+#Controlling figure output in markdown
+knitr::opts_chunk$set(
+#  fig.height =   
+  fig.width = 6,
+#  fig.asp = .5,
+  out.width = "90%",
+#  out.height = 
+ fig.align  = "center",
+  cache = FALSE,
+  eval  = TRUE,
+  echo  = TRUE,
+  warning = FALSE
+)
+
+#Set Theme for ggplot2
+#theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5), legend.position = "bottom"))
+
+#Set Scientific notation output and decimal places for knitr
+options(scipen = 999)
+options(digits = 4)
+options(dplyr.summarise.inform = FALSE)
+
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+baseball <- readRDS("C:/Users/econn/OneDrive/School/Minnesota/Spring 2022/PubH 7462/Project/Years of Data/baseball.RDS")
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Time of Game based on Regular Season vs. Postseason
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+graph1 <- baseball %>%
+  mutate(year = as.numeric(year),
+         postseason = fct_recode(factor(postseason),
+                                 "Postseason" = "1",
+                                 "Regular Season" = "0")) %>%
+  filter(year >= 1910) %>%
+  group_by(year, postseason) %>%
+  summarise(meanTOG = mean(TOG)) %>%
+  mutate(meanTOG = round(meanTOG, 0)) %>%
+  rename("Year" = year,
+         "Game Type" = postseason,
+         "Average Time of Game" = meanTOG) %>% 
+  ggplot(aes(x = Year, y = `Average Time of Game`, color = `Game Type`)) +
+  geom_point() +
+  geom_line() + 
+  geom_smooth(se = FALSE, method = 'loess', formula = y ~ x) +
+  theme_bw() +
+  xlab("Year") +
+  ylab("Time of Game \n(Minutes)") +
+  ggtitle("Time of Game based on Regular Season or Postseason Status, 1910-2021") +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  scale_color_manual("Game Type", values = c("#2171b5", "#6baed6")) +
+  scale_x_continuous(breaks = seq(1910, 2021, by = 10))
+  
+ggplotly(graph1)
+
+```
+
+### Number of Pitchers Used based on Regular Season vs. Postseason
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+
+graph2 <- baseball %>%
+  filter(year >= 1910) %>%
+  mutate(numPitchers = VisitNumPitchers + HomeNumPitchers,
+         postseason = fct_recode(factor(postseason),
+                                 "Postseason" = "1",
+                                 "Regular Season" = "0"),
+         year = as.numeric(year)) %>%
+  group_by(year, postseason) %>%
+  summarise(numPitchersAvg = mean(numPitchers)) %>%
+  mutate(numPitchersAvg = round(numPitchersAvg, 1)) %>%
+  rename("Year" = year,
+         "Game Type" = postseason,
+         "Average Number of Pitchers" = numPitchersAvg) %>%
+  ggplot(aes(x = Year, y = `Average Number of Pitchers`, color = `Game Type`)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(se = FALSE, method = 'loess', formula = y ~ x) +
+  ylim(0, 12) +
+  scale_y_continuous(breaks = seq(0, 14, by = 2)) +
+  xlab("Year") +
+  ylab("Number of Pitchers Used") +
+  ggtitle("Number of Pitchers Used in a Game: Postseason vs. Regular Season Comparison, 1910-2021") +
+  theme_bw() +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  scale_color_manual("Game Type", values = c("#2171b5", "#6baed6")) +
+  scale_x_continuous(breaks = seq(1910, 2021, by = 10))
+
+ggplotly(graph2)
+
+```
+
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Strikeout-to-Walk Ratio in Regular Season vs. Postseason
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+graph3 <- baseball %>%
+  filter(year >= 1910) %>%
+  mutate(K = VisitK + HomeK,
+         BB = VisitBB + HomeBB,
+         #kBBRat = K / BB,
+         postseason = fct_recode(factor(postseason),
+                                 "Postseason" = "1",
+                                 "Regular Season" = "0"),
+         year = as.numeric(year)) %>%
+  group_by(year, postseason) %>%
+  summarise(KTot = sum(K, na.rm = TRUE),
+            BBTot = sum(BB, na.rm = TRUE)) %>%
+  mutate(kBBRat = round(KTot / BBTot, 2)) %>%
+  rename("Year" = year,
+         "Game Type" = postseason,
+         "K-BB Ratio" = kBBRat) %>%
+  ggplot(aes(x = Year, y = `K-BB Ratio`, color = `Game Type`)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(se = FALSE, method = 'loess', formula = y ~ x) +
+  theme_bw() +
+  ylim(0, 5) +
+  scale_y_continuous(breaks = seq(0, 5, by = 1)) +
+  xlab("Year") +
+  ylab("K/BB Ratio") +
+  ggtitle("Strikeout-to-walk Ratio in MLB Games: \nPostseason vs. Regular Season Comparison, 1910-2021") +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  scale_color_manual("Game Type", values = c("#2171b5", "#6baed6")) +
+  scale_x_continuous(breaks = seq(1910, 2021, by = 10))
+
+ggplotly(graph3)
+
+```
+
+### Home Win Percentage in Regular Season vs. Postseason
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+graph4 <- baseball %>%
+  filter(year >= 1910) %>%
+  mutate(HomeWin = ifelse(HomeScore > VisitScore, 1, 0),
+         postseason = fct_recode(factor(postseason),
+                                 "Postseason" = "1",
+                                 "Regular Season" = "0"),
+         year = as.numeric(year)) %>%
+  group_by(year, postseason) %>%
+  summarise(WinPercent = sum(HomeWin) / n()) %>%
+  mutate(WinPercent = round(WinPercent, 3) * 100) %>%
+  rename("Year" = year,
+         "Game Type" = postseason,
+         "Home Win Percentage" = WinPercent) %>%
+  ggplot(aes(x = Year, y = `Home Win Percentage`, color = `Game Type`)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(se = FALSE, method = 'loess', formula = y ~ x) +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(20, 90, by = 10)) +
+  xlab("Year") +
+  ylab("Win Percentage (%)") +
+  ggtitle("Home Field Advantage MLB Games: Comparison between \nPostseason and Regular Season Comparison, 1910-2021") +
+  theme(axis.title.y = element_text(angle = 0, vjust = 0.5),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  scale_color_manual("Game Type", values = c("#2171b5", "#6baed6")) +
+  scale_x_continuous(breaks = seq(1910, 2021, by = 10))
+
+ggplotly(graph4)
+
+```
