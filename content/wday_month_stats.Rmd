@@ -4,7 +4,8 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(echo = TRUE,
+                     root.dir = rprojroot::find_rstudio_root_file())
 library(tidyverse)
 library(lubridate)
 library(gt)
@@ -95,4 +96,6 @@ b %>%
   gtsave("month_table.png")
 ```
 
-We should first note that not many games throughout MLB history have been played in March or November, so that may explain why those values seem odd.
+We should first note that not many games throughout MLB history have been played in March or November, so that may explain why those values seem odd. March and November had the two lowest batting averages and the two highest home runs per game and runs per game. 
+
+Other than those months, October had the lowest value for all three statistics. This makes sense because the playoffs are usually in October and scoring would be expected to go down in the playoffs. Batting average is highest during the middle months of the season while summer is also at its peak (June, July, August). Home runs per game and runs per game decrease as the year comes to a close. This may mean that pitchers start to dial it in as the playoffs get closer and the weather starts to cool down.
