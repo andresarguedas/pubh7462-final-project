@@ -1,0 +1,129 @@
+---
+title: "Untitled"
+author: "Andrés Arguedas"
+date: "6/5/2022"
+output: html_document
+---
+
+```{r setup, include = FALSE, echo = FALSE}
+# Load the required packages for this script
+library(tidyverse)
+library(lubridate)
+library(sf)
+
+
+library(ggridges)
+library(plotly)
+library(sf)
+library(ggmap)
+library(tidycensus)
+library(leaflet)
+library(osmdata)
+library(tigris)
+library(ggsflabel)
+library(ggthemes)
+library(htmltools)
+
+# Set system locale to English for use with days of week and months
+Sys.setenv("LANGUAGE" = "En")
+Sys.setlocale("LC_ALL", "English")
+
+# Working directory for .RMD, figure output in Markdown, and messages/warnings
+# output
+knitr::opts_knit$set(
+  echo = FALSE,
+  root.dir = rprojroot::find_rstudio_root_file(),
+  fig.width = 6,
+  out.width = "70%",
+  fig.align = "center",
+  cache = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+# Set theme for ggplot2 to `theme_bw()`, as well as centering the title and
+# putting the legend at bottom by default
+theme_set(theme_bw())
+theme_update(
+  plot.title = element_text(hjust = 0.5, face = "bold"),
+  legend.position = "bottom"
+)
+
+# Set the color palette of ggplot to a colorblind friendly one (Okabe-Ito)
+options(
+  ggplot2.discrete.colour = c(
+    "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7",
+    "#000000"
+  ), ggplot2.discrete.fill = c(
+    "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7",
+    "#000000"
+  )
+)
+
+# Set scientific notation output and decimal places for knitr
+# options(scipen = 999)
+# options(digits = 4)
+
+# Save the cache so you don't need to call the same API request over and over
+options(tigris_use_cache = TRUE)
+```
+
+
+```{r}
+baseball <- read_rds("./data/baseball.rds") %>% 
+  mutate(Date = ymd(Date)) %>% 
+  janitor::clean_names()
+
+# Changes in teams:
+# MON -> WAS
+# FLO -> MIA
+team_stats <- baseball %>% 
+  mutate(year = as.numeric(year)) %>% 
+  filter(year >= 2000) %>% 
+  mutate(total_k = visit_k + home_k) %>% 
+  dplyr::select(date, visit_team, home_team, visit_k, home_k, total_k, year) %>% 
+  group_by(home_team, year) %>% 
+  summarise(sum_k = sum(total_k),
+            mean_k = mean(total_k),
+            games = n()) %>% 
+  rename(team_id = home_team)
+
+parks <- read_csv("./data/Parks.csv") %>% janitor::clean_names()
+
+parks_info <- parks %>% rename(park_id = parkid) %>% 
+  mutate(start = ymd(start),
+                 end = ymd(end)) %>% 
+  filter(is.na(end) | end >= date("2000-01-01"), !is.na(start),
+         !park_id %in% c("FTB01", "LBV01", "LON01", "MNT01", "OMA01", "SJU01",
+                        "SYD01", "TOK01", "WIL02"))
+
+teams <- read_csv("./data/Teams.csv") %>% janitor::clean_names()
+
+home_main <- read_csv("./data/Home Main Data With Parks Breakout.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(team_id = str_replace(team_id, "LAA", "ANA"))
+
+teams_park <- home_main %>% filter(year >= 2000, gp_h >= 25)
+
+data_parks <- left_join(team_stats, teams_park, by = c("team_id", "year")) %>% 
+  group_by(team_id, year) %>% 
+  filter(!is.na(park_id)) %>% 
+  nest(data = -park_id) %>% 
+  left_join(., parks_info, by = "park_id") %>% 
+  unnest(cols = data) %>% 
+  group_by(park_id) %>% 
+  summarise(name = first(name),
+            team_id = first(team_id),
+            first_year = min(year),
+            last_year = max(year),
+            years = last_year - first_year + 1,
+            total_k = sum(sum_k),
+            total_games = sum(games),
+            mean_k = total_k / total_games,
+            latitude = first(latitude),
+            longitude = first(longitude)) %>% 
+  st_as_sf(coords = c("longitude", "latitude"))
+
+leaflet(data_parks) %>% addProviderTiles("CartoDB.Positron") %>% addMarkers()
+```
+
