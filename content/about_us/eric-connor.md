@@ -7,7 +7,7 @@ categories: []
 tags: []
 image: images/team/eric-connor.jpg
 jobtitle: Collaborator
-linkedinurl: https://www.linkedin.com/
+linkedinurl: https://www.linkedin.com/in/eric-connor/
 weight: 100
 promoted: yes
 ---
