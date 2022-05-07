@@ -1,6 +1,5 @@
 ---
-title: "Pitcher Numbers"
-author: "Ant"
+title: "Did the number of pitchers used in a game increase over time (both between seasons and within seasons)?"
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: scroll
@@ -52,7 +51,7 @@ bball <- read_rds("./data/baseball.rds")
   mutate(Date = as.character(Date), Date = ymd(Date), Day = factor(Day, ordered = TRUE), Day = ordered(Day, levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")), Attendance = as.numeric(Attendance), DayNight = factor(DayNight)))
 ```
 
-### Number of Pitchers over time
+### Number of Pitchers over Every Season from 1900-2021
 
 ```{r, echo=FALSE, fig.width=12}
 b %>%
@@ -70,7 +69,7 @@ b %>%
   theme(axis.text.x = element_text(angle = 0))
 ```
 
-### Number of pitchers in 2019
+### Number of Pitchers over 2019
 
 ```{r, include=FALSE}
 avg_2019 <- b %>%
@@ -94,14 +93,14 @@ ggplotly2019 <- ggplotly(avg_2019)
 
 ```{r, echo=FALSE}
 tot_pitch <- b %>% mutate(numpitch = VisitNumPitchers + HomeNumPitchers) %>% filter(year %in% 2019) %>%  group_by(Date) %>% summarize(pitch = sum(numpitch)/n())
-text_label <- str_c("Date: ", month(tot_pitch$Date, label = T), " ", day(tot_pitch$Date), "\nAvg. # of Pitchers: ", tot_pitch$pitch)
+text_label <- str_c("Date: ", month(tot_pitch$Date, label = T), " ", day(tot_pitch$Date), "\nAvg. # of Pitchers: ", round(tot_pitch$pitch, digits = 3))
 ggplotly2019 %>%
   style(text = text_label, traces = 1) %>%
   style(text = text_label, traces = c(2,3,4)) 
 ```
 
 
-### 30 Teams
+### Numbers of Pitchers used per Year in the 30 Team Era Years
 
 ```{r, include=FALSE}
 thirty_team <- b %>%
@@ -110,9 +109,11 @@ thirty_team <- b %>%
   group_by(year) %>%
   summarize(pitch_year = sum(numpitch)) %>%
   mutate(text_label = str_c("Year: ", year, "\nPitchers Used: ", pitch_year)) %>%
-  ggplot(aes(x = year, y = pitch_year, fill = year, text = text_label)) +
+  ggplot(aes(x = year, y = pitch_year, fill = pitch_year, text = text_label)) +
   geom_col() +
-  labs(x = "Season", y = "Pitchers per Year", title = "Number of Pitchers used per Year in 30 Team Era")
+  labs(x = "Season", y = "Pitchers per Year", title = "Number of Pitchers used per Year in 30 Team Era", fill = "Total Number of Pitchers") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_continuous(labels = scales::comma)
 ```
 
 ```{r, echo=FALSE}
