@@ -13,3 +13,5 @@ promoted: yes
 ---
 
 M.S. in Biostatistics, University of Minnesota
+
+E-mail: [argue039@umn.edu](mailto:argue039@umn.edu)

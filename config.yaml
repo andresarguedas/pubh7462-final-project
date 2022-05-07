@@ -6,6 +6,12 @@ module:
   hugoVersion:
     extended: yes
     min: 0.55.0
+ignoreFiles:
+  - \.rds$
+  - \.csv$
+  - \.Rmd$
+  - \.Rmarkdown$
+  - _cache$
 params:
   colors:
     black: '#002D72'
@@ -15,7 +21,7 @@ params:
     white_offset: '#F9F6FB'
   fonts:
     base: Lato
-    google_fonts: https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Playball&display=swap
+    google_fonts: https://fonts.googleapis.com/css2?family=Lato:wght@500&family=Playball&display=swap
     heading: Playball
   #footer:
   #  copyright_text: Free Hugo theme by <a class="zerostatic" href="https://www.zerostatic.io">www.zerostatic.io</a>
@@ -23,7 +29,7 @@ params:
   google_tag_manager_id: ''
   homepage:
     show_contact_box: no
-    show_services_button: yes
+    show_services_button: no
   logo:
     alt: Btta - Baseball through the Ages
     desktop: images/logo/logo.svg
@@ -37,9 +43,8 @@ menu:
     - name: Home
       url: /
       weight: 1
-    - name: Contact
-      url: /contact/
-      weight: 2
+    - name: Research Questions
+      url: /research_questions/
   main:
     - name: About Us
       url: /about_us/
@@ -47,8 +52,10 @@ menu:
     - name: Data
       url: /data/
       weight: 2
-    - name: Contact
-      url: /contact/
-      weight: 4
-    - name: Dashboard
-      url: /dashboard/example.html
+    - name: Research Questions
+      url: /research_questions/
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true

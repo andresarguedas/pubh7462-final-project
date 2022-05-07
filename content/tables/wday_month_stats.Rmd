@@ -1,0 +1,110 @@
+---
+title: "Research Questions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(echo = TRUE,
+                     root.dir = rprojroot::find_rstudio_root_file())
+library(tidyverse)
+library(lubridate)
+library(gt)
+library(paletteer)
+library(plotly)
+library(flexdashboard)
+library(forcats)
+library(DataExplorer)
+library(stringr)
+library(RColorBrewer)
+
+# Set system locale to English for use with days of week and months
+Sys.setenv("LANGUAGE" = "En")
+Sys.setlocale("LC_ALL", "English")
+```
+
+```{r data_read, include = FALSE}
+bball <- read_rds("./data/baseball.rds")
+(b = bball %>%
+  mutate(Date = as.character(Date), Date = ymd(Date), Day = factor(Day, ordered = TRUE), Day = ordered(Day, levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")), Attendance = as.numeric(Attendance), DayNight = factor(DayNight)))
+```
+
+
+# What day of the week is there the highest batting average?
+
+We first look at the batting average, number of home runs per game, and the number of runs per game by the day of the week.
+
+```{r Day of Week,echo=FALSE}
+b %>%
+  filter(year > 1900) %>%
+  mutate(hits = HomeH + VisitH, at_bats = HomeAB + VisitAB, HRs = HomeHR + VisitHR, Rs = HomeScore + VisitScore) %>%
+  mutate(dayofweek = wday(Date, abbr = F, label = T)) %>%
+  group_by(dayofweek) %>%
+  summarize(h = sum(hits, na.rm = T), ab = sum(at_bats, na.rm = T), avg = h/ab, hrs = sum(HRs, na.rm = T)/n(), runs = sum(Rs)/n()) %>%
+  select(dayofweek, avg, hrs, runs) %>%
+  gt() %>%
+  cols_label("dayofweek" = "Day of the Week", "avg" = "Batting Average", "hrs" = "HRs per Game", "runs" = "Runs per Game") %>%
+  data_color(columns = avg, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(avg), max(avg)))) %>%
+  data_color(columns = hrs, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(hrs), max(hrs)))) %>%
+  data_color(columns = runs, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(runs), max(runs)))) %>%
+  tab_header(title = "Stats by Day of the Week since 1901") #%>%
+  #gtsave("wday_table.png")
+```
+
+Sunday and Monday have the highest batting average. Wednesday and Friday have the lowest batting average. Sunday had the most home runs per game, while Thursday had the least. Saturday had the most runs per game, while Wednesday had the least. Overall, these data seem to suggest that Saturday through Monday is the best time for hitters. In the middle of the week, hitting and run production goes down.
+
+# Is this different between weekdays and weekends?
+
+Now, we will look more closely at the differences between weekdays and weekends for these same statistics.
+
+```{r weekend, echo=FALSE}
+b %>%
+  filter(year > 1900) %>%
+  mutate(hits = HomeH + VisitH, at_bats = HomeAB + VisitAB, HRs = HomeHR + VisitHR, Rs = HomeScore + VisitScore) %>%
+  mutate(dayofweek = wday(Date, abbr = F, label = T), weekday = ifelse(dayofweek %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), "Weekday", "Weekend")) %>%
+  group_by(weekday) %>%
+  summarize(h = sum(hits, na.rm = T), ab = sum(at_bats, na.rm = T), avg = h/ab, hrs = sum(HRs, na.rm = T)/n(), runs = sum(Rs)/n()) %>%
+  select(weekday, avg, hrs, runs) %>%
+  gt() %>%
+  cols_label("weekday" = "Weekday or Weekend", "avg" = "Batting Average", "hrs" = "HRs per Game", "runs" = "Runs per Game") %>%
+  data_color(columns = avg, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(avg), max(avg)))) %>%
+  data_color(columns = hrs, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(hrs), max(hrs)))) %>%
+  data_color(columns = runs, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(runs), max(runs)))) %>%
+  tab_header(title = "Stats by Weekday or Weekend since 1901") #%>%
+  #gtsave("weekend_table.png")
+```
+
+As we would expect from the last table, the weekends are a better time for hitting. Batting average, home runs per game, and runs per game are all higher on the weekends than during the week.
+
+# What about across months?
+
+Next, we look at these statistics over the months of the baseball season (March-November)
+
+```{r month, echo=FALSE}
+b %>%
+  filter(year > 1900) %>%
+  mutate(Month = month(Date, label = T, abbr = F)) %>%
+  mutate(hits = HomeH + VisitH, at_bats = HomeAB + VisitAB, HRs = HomeHR + VisitHR, Rs = HomeScore + VisitScore) %>%
+  group_by(Month) %>%
+  summarize(h = sum(hits, na.rm = T), ab = sum(at_bats, na.rm = T), avg = h/ab, hrs = sum(HRs, na.rm = T)/n(), runs = sum(Rs)/n()) %>%
+  select(Month, avg, hrs, runs) %>%
+  gt() %>%
+  cols_label("avg" = "Batting Average", "hrs" = "HRs per Game", "runs" = "Runs per Game") %>%
+  data_color(columns = avg, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(avg), max(avg)))) %>%
+  data_color(columns = hrs, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(hrs), max(hrs)))) %>%
+  data_color(columns = runs, colors = scales::col_numeric(palette = c("blue", "white", "red"),
+      domain  = c(min(runs), max(runs)))) %>%
+  tab_header(title = "Stats by Month since 1901")# %>%
+  #gtsave("month_table.png")
+```
+
+We should first note that not many games throughout MLB history have been played in March or November, so that may explain why those values seem odd. March and November had the two lowest batting averages and the two highest home runs per game and runs per game. 
+
+Other than those months, October had the lowest value for all three statistics. This makes sense because the playoffs are usually in October and scoring would be expected to go down in the playoffs. Batting average is highest during the middle months of the season while summer is also at its peak (June, July, August). Home runs per game and runs per game decrease as the year comes to a close. This may mean that pitchers start to dial it in as the playoffs get closer and the weather starts to cool down.

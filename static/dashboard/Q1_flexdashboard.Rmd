@@ -3,6 +3,8 @@ title: "Did the number of pitchers used in a game increase over time (both betwe
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: scroll
+    navbar:
+      - { icon: "fa-backward", href: "/research_questions/", align: right }
 ---
 
 ```{r setup, include = FALSE, echo = FALSE}

@@ -1,0 +1,258 @@
+---
+title: "Research Questions"
+author: "Andrés Arguedas"
+output: html_document
+---
+
+# Map of MLB Ballparks from 2000 to 2019
+
+```{r setup, include = FALSE, echo = FALSE}
+# Load the required packages for this script
+library(tidyverse)
+library(lubridate)
+library(sf)
+library(leaflet)
+library(wal)
+library(htmltools)
+library(teamcolors)
+library(toOrdinal)
+
+# Set system locale to English for use with days of week and months
+Sys.setenv("LANGUAGE" = "En")
+Sys.setlocale("LC_ALL", "English")
+
+# Working directory for .RMD, figure output in Markdown, and messages/warnings
+# output
+knitr::opts_knit$set(
+  echo = FALSE,
+  root.dir = rprojroot::find_rstudio_root_file(),
+  fig.width = 6,
+  out.width = "70%",
+  fig.align = "center",
+  cache = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+# Set theme for ggplot2 to `theme_bw()`, as well as centering the title and
+# putting the legend at bottom by default
+theme_set(theme_bw())
+theme_update(
+  plot.title = element_text(hjust = 0.5, face = "bold"),
+  legend.position = "bottom"
+)
+
+# Set the color palette of ggplot to a colorblind friendly one (Okabe-Ito)
+options(
+  ggplot2.discrete.colour = c(
+    "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7",
+    "#000000"
+  ), ggplot2.discrete.fill = c(
+    "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7",
+    "#000000"
+  )
+)
+
+```
+
+
+```{r data-loading, echo = F, warning=F, message=F}
+# NOTE -> Changes in teams from 2000 to 2021:
+# MON -> WAS
+# FLO -> MIA
+
+# Load the original data
+baseball <- read_rds(str_c(here::here(), "data", "baseball.rds", sep = "/")) %>% 
+  mutate(Date = ymd(Date)) %>% 
+  janitor::clean_names()
+
+# Summarise the desired statistics across team, per year
+team_stats <- baseball %>% 
+  mutate(year = as.numeric(year)) %>% 
+  filter(year >= 2000) %>% 
+  mutate(total_k = visit_k + home_k,
+         total_bb = visit_bb + home_bb,
+         total_hr = visit_hr + home_hr) %>% 
+  dplyr::select(date, visit_team, home_team, visit_k, home_k, total_k, total_bb, 
+                visit_bb, home_bb, total_hr, visit_hr, home_hr, year) %>% 
+  group_by(home_team, year) %>% 
+  summarise(sum_k = sum(total_k),
+            mean_k = mean(total_k),
+            sum_bb = sum(total_bb),
+            mean_bb = mean(total_bb),
+            sum_hr = sum(total_hr),
+            mean_hr = mean(total_hr),
+            games = n()) %>% 
+  rename(team_id = home_team)
+
+# Load the ballpark names and locations
+parks <- read_csv(str_c(here::here(), "data", "Parks.csv", sep = "/")) %>% 
+  janitor::clean_names()
+
+# Load ballpark information, and filter parks for special games only
+parks_info <- parks %>% rename(park_id = parkid) %>% 
+  mutate(start = ymd(start),
+                 end = ymd(end)) %>% 
+  filter(is.na(end) | end >= date("2000-01-01"), !is.na(start),
+         !park_id %in% c("FTB01", "LBV01", "LON01", "MNT01", "OMA01", "SJU01",
+                        "SYD01", "TOK01", "WIL02"))
+
+# Load the team data
+teams <- read_csv(str_c(here::here(), "data", "Teams.csv", sep = "/")) %>% 
+  janitor::clean_names()
+
+# Load which teams played in which ballparks
+home_main <- read_csv(str_c(here::here(), "data", "Home Main Data With Parks Breakout.csv", sep = "/")) %>% 
+  janitor::clean_names() %>% 
+  mutate(team_id = str_replace(team_id, "LAA", "ANA"))
+
+# Take only information for the desired years, and for ballparks used throughout
+# all the year
+teams_park <- home_main %>% filter(year >= 2000, gp_h >= 25)
+
+# Load the primary and secondary colors for each team
+mlb_colors <- read_csv(str_c(here::here(), "data", "mlb-colors.csv", sep = "/"))
+
+mlb_team_colors <- mlb_colors %>% dplyr::select(location, abbreviation, team, primary_color, secondary_color) %>% 
+  rename(team_id = abbreviation)
+
+# Obtain the links for team logos
+logos <- teamcolors %>%
+  filter(league %in% "mlb") %>% 
+  dplyr::select(name, logo) %>% 
+  rename(full_name = name)
+```
+
+```{r data-joining, echo = F}
+# Join all of the above datasets into just one big dataset with all the required
+# information, across ballparks, with corresponding labels and popups for the
+# map
+data_parks <- left_join(team_stats, teams_park, by = c("team_id", "year")) %>% 
+  group_by(team_id, year) %>% 
+  filter(!is.na(park_id)) %>% 
+  nest(data = -park_id) %>% 
+  left_join(., parks_info, by = "park_id") %>% 
+  mutate(start_year = year(start),
+         end_year = year(end) %>% replace_na(2019)) %>% 
+  unnest(cols = data) %>% 
+  group_by(park_id) %>% 
+  summarise(name = first(name),
+            team_id = first(team_id),
+            start_year = first(start_year),
+            end_year = first(end_year),
+            total_years = end_year - start_year + 1,
+            first_year = first(year),
+            last_year = last(year),
+            years = last_year - first_year + 1,
+            total_k = sum(sum_k),
+            total_bb = sum(sum_bb),
+            total_hr = sum(sum_hr),
+            total_games = sum(games),
+            mean_k = total_k / total_games,
+            mean_bb = total_bb / total_games,
+            mean_hr = total_hr / total_games,
+            latitude = first(latitude),
+            longitude = first(longitude),
+            city = first(city),
+            state = first(state)) %>% 
+  nest(data = -team_id) %>% 
+  left_join(., mlb_team_colors, by = "team_id") %>% 
+  mutate(full_name = str_c(location, team, sep = " ")) %>% 
+  left_join(., logos, by = "full_name") %>% 
+  mutate(logo = case_when(
+    full_name %in% "Florida Marlins" ~ "https://content.sportslogos.net/logos/54/60/thumbs/uiqyat8zrx40ircpu9begvbwe.gif",
+    full_name %in% "Montreal Expos" ~ "",
+    TRUE ~ logo
+  )) %>% 
+  unnest(cols = data) %>% 
+    mutate(relative_k = rank(-mean_k) %>% toOrdinal,
+           relative_bb = rank(-mean_bb) %>% toOrdinal,
+           relative_hr = rank(-mean_hr) %>% toOrdinal,
+           label = str_c(
+    "<b>Ballpark:</b> ",
+    name,
+    "<br/><b>Team:</b> ",
+    team,
+    "<br/><b>Location:</b> ",
+    city,
+    ", ",
+    state,
+    "<br/><b>Years active:</b> ",
+    start_year,
+    " - ",
+    end_year
+  ),
+  popup = str_c(
+    "<p style='text-align:center;'><img src = '",
+    logo,
+    "'></p><center><b>",
+    name,
+    ", ",
+    city,
+    ", ",
+    state,
+    "</b></center><ul><li>From ",
+    first_year,
+    " to ",
+    last_year,
+    " a total of ",
+    total_games %>% scales::comma(),
+    " games were played in this ballpark.</li><li>Over these ",
+    years,
+    " years, ",
+    team,
+    " fans saw ",
+    total_k %>% scales::comma(),
+    " strikeouts, for an average of ",
+    mean_k %>% scales::number(accuracy = 0.01),
+    " strikeouts per game, which ranks ",
+    relative_k,
+    " across all parks.</li><li>However, pitchers gave a total of ",
+    total_bb %>% scales::comma(),
+    " walks, which across all ",
+    years,
+    " years meant ",
+    mean_bb %>% scales::number(accuracy = 0.01),
+    " walks per game, on average, which ranks ",
+    relative_bb,
+    ".</li><li>Finally, hitters slammed the ball out of the park ", 
+    total_hr %>% scales::comma(),
+    " times, or ",
+    mean_hr %>% scales::number(accuracy = 0.01),
+    " times on average per game, which puts this park in the ",
+    relative_hr,
+    " position in this metric.</ul>"
+  )) %>% 
+  st_as_sf(coords = c("longitude", "latitude"))
+```
+
+```{r map, echo=F}
+# For visual purposes, we need to determine which of the secondary colors is
+# closest to the palette given by leaflet
+leaflet.colors <- c("red", "darkred", "lightred", "orange", "beige", "green", 
+                    "darkgreen", "lightgreen", "blue", "darkblue", "lightblue", 
+                    "purple", "darkpurple", "pink", "cadetblue", "white", 
+                    "gray", "lightgray", "black")
+
+closest.colors <- closest.color.from.palette(col2rgb(data_parks$secondary_color) 
+                                             %>% t(), 
+                           col2rgb(c("red", "darkred", "red1", "orange", 
+                                     "beige", "green", "darkgreen", 
+                                     "lightgreen", "blue", "darkblue", 
+                                     "lightblue", "purple", "purple4", 
+                                     "pink", "cadetblue", "white", "gray", 
+                                     "lightgray", "black")) %>% t())
+
+# Create corresponding icons for each ballpark, based on team colors
+icons <- awesomeIcons(library = "ion", icon = "ios-baseball", 
+                      markerColor = leaflet.colors[closest.colors], 
+                      iconColor = data_parks$primary_color)
+
+# Plot all the information into a map
+leaflet(data_parks) %>% 
+  addProviderTiles("CartoDB.Positron") %>% 
+  addAwesomeMarkers(icon = icons, label = ~map(label, HTML),
+                    popup = ~map(popup, HTML)) %>%
+  addMiniMap(tiles = "CartoDB.Positron", toggleDisplay = TRUE)
+```
+

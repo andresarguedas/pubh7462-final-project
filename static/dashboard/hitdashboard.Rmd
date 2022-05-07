@@ -1,10 +1,11 @@
 ---
-title: "hitdashboard"
-author: "Eric Connor"
+title: "How has the game evolved between regular season play and the postseason?"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    navbar:
+      - { icon: "fa-backward", href: "/research_questions/", align: right }
 ---
 
 ```{r setup, include = FALSE, echo = FALSE}
@@ -49,7 +50,7 @@ options(dplyr.summarise.inform = FALSE)
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 
-baseball <- readRDS("C:/Users/econn/OneDrive/School/Minnesota/Spring 2022/PubH 7462/Project/Years of Data/baseball.RDS")
+baseball <- readRDS("./data/baseball.rds")
 
 ```
 

@@ -1,0 +1,20 @@
+---
+title: "Research Questions"
+author: "Andrés Arguedas"
+date: "7/5/2022"
+output: html_document
+---
+
+For this particular project, we were mostly interested in the following questions:
+
+1. **Did the number of pitchers used in a game increase over time (both between seasons and within seasons)?**
+    - [*Dashboard*](/dashboard/q1_flexdashboard.html)
+2. **Do different umpires, ballparks, or teams have more runs, home runs, strike-outs, or walks than others in the 21st century?**
+    - [*Tables for Umpires*](/tables/umpire_tables/) 
+    - [*Ballpark Map*](/map/ballpark-map/)
+3. **What day of the week is there the highest batting average? Is this different between weekdays and weekends? What about across months?**
+    - [*Tables*](/tables/wday_month_stats/)
+4. **How has the game evolved between regular season play and the postseason? These questions will consist of time of game, home and away team game statistics, and home-field advantage or win probability, based on whether the games are regular season or postseason.**
+    - [*Dashboard (Statistics)*](/dashboard/postdashboard.html)
+    - [*Dashboard (Hit types)*](/dashboard/hitdashboard.html)
+    - [*Tables*](/tables/team_tables/)

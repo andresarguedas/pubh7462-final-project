@@ -1,0 +1,145 @@
+---
+title: "Umpire Tables"
+author: "Eric Connor"
+date: "5/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(lubridate)
+library(gt)
+library(paletteer)
+library(plotly)
+library(flexdashboard)
+library(forcats)
+library(DataExplorer)
+library(stringr)
+library(RColorBrewer)
+
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+
+baseball <- readRDS(str_c(here::here(), "data", "baseball.rds", sep = "/"))
+
+```
+
+# Baseball Umpires since 1910
+
+```{r highump, echo=F}
+
+baseball %>%
+  filter(year >= 1910) %>%
+  mutate(K = HomeK + VisitK,
+         BB = HomeBB + VisitBB) %>%
+  group_by(HomeUmpire) %>%
+  summarise(games = n(),
+            avgK = mean(K, na.rm = TRUE),
+            avgBB = mean(BB, na.rm = TRUE),
+            kBBRat = avgK / avgBB) %>%
+  filter(games >= 500) %>%
+  select(HomeUmpire, kBBRat) %>%
+  arrange(desc(kBBRat)) %>%
+  slice(1:50) %>%
+  gt(rowname_col = "HomeUmpire") %>%
+    tab_stubhead("Home Umpire") %>%
+    tab_header(title = "Home Plate Umpire Strikeout-to-Walk Ratios for Highest 50 Umpires with 500 Games Umpired since 1910") %>%
+    cols_label(kBBRat = "K-BB Ratio") %>%
+    fmt_number(columns = 2,
+               decimals = 2) %>%
+    data_color(columns = c("kBBRat"), # Color code based on value
+               colors = scales::col_numeric(
+               palette = c("white", "lightblue"),
+               domain = NULL)) #%>%
+  #gtsave(filename = "highump.png")
+```
+
+```{r lowump, echo = F}
+baseball %>%
+  filter(year >= 1910) %>%
+  mutate(K = HomeK + VisitK,
+         BB = HomeBB + VisitBB) %>%
+  group_by(HomeUmpire) %>%
+  summarise(games = n(),
+            avgK = mean(K, na.rm = TRUE),
+            avgBB = mean(BB, na.rm = TRUE),
+            kBBRat = avgK / avgBB) %>%
+  filter(games >= 500) %>%
+  select(HomeUmpire, kBBRat) %>%
+  arrange(kBBRat) %>%
+  slice(1:50) %>%
+  gt(rowname_col = "HomeUmpire") %>%
+    tab_stubhead("Home Umpire") %>%
+    tab_header(title = "Home Plate Umpire Strikeout-to-Walk Ratios for Lowest 50 Umpires with 500 Games Umpired since 1910") %>%
+    cols_label(kBBRat = "K-BB Ratio") %>%
+    fmt_number(columns = 2,
+               decimals = 2) %>%
+    data_color(columns = c("kBBRat"), # Color code based on value
+               colors = scales::col_numeric(
+               palette = c("white", "lightblue"),
+               domain = NULL))# %>%
+    #gtsave(filename = "lowump.png")
+
+```
+
+# Baseball Umpires since 2000
+
+```{r highump200, echo=F}
+
+baseball %>%
+  filter(year >= 2000) %>%
+  mutate(K = HomeK + VisitK,
+         BB = HomeBB + VisitBB) %>%
+  group_by(HomeUmpire) %>%
+  summarise(games = n(),
+            avgK = mean(K, na.rm = TRUE),
+            avgBB = mean(BB, na.rm = TRUE),
+            kBBRat = avgK / avgBB) %>% 
+  filter(games >= 100) %>%
+  select(HomeUmpire, kBBRat) %>%
+  arrange(desc(kBBRat)) %>%
+  slice(1:50) %>%
+  gt(rowname_col = "HomeUmpire") %>%
+    tab_stubhead("Home Umpire") %>%
+    tab_header(title = "Home Plate Umpire Strikeout-to-Walk Ratios for Highest 50 Umpires with 100 Games Umpired since 2000") %>%
+    cols_label(kBBRat = "K-BB Ratio") %>%
+    fmt_number(columns = 2,
+               decimals = 2) %>%
+    data_color(columns = c("kBBRat"), # Color code based on value
+               colors = scales::col_numeric(
+               palette = c("white", "lightblue"),
+                domain = NULL))# %>%
+    #gtsave(filename = "highump2000.png")
+```
+
+```{r lowump2000, echo = F}
+baseball %>%
+  filter(year >= 2000) %>%
+  mutate(K = HomeK + VisitK,
+         BB = HomeBB + VisitBB) %>%
+  group_by(HomeUmpire) %>%
+  summarise(games = n(),
+            avgK = mean(K, na.rm = TRUE),
+            avgBB = mean(BB, na.rm = TRUE),
+            kBBRat = avgK / avgBB) %>%
+  filter(games >= 100) %>%
+  select(HomeUmpire, kBBRat) %>%
+  arrange(kBBRat) %>%
+  slice(1:50) %>%
+  gt(rowname_col = "HomeUmpire") %>%
+    tab_stubhead("Home Umpire") %>%
+    tab_header(title = "Home Plate Umpire Strikeout-to-Walk Ratios for Lowest 50 Umpires with 500 Games Umpired since 1910") %>%
+    cols_label(kBBRat = "K-BB Ratio") %>%
+    fmt_number(columns = 2,
+               decimals = 2) %>%
+    data_color(columns = c("kBBRat"), # Color code based on value
+               colors = scales::col_numeric(
+               palette = c("white", "lightblue"),
+               domain = NULL))# %>%
+    #gtsave(filename = "lowump2000.png")
+
+```
+

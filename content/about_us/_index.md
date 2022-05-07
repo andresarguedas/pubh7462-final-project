@@ -1,5 +1,5 @@
 ---
-title: Who we are
+title: About Us
 intro_image: images/team/people.svg
 intro_image_absolute: true
 intro_image_hide_on_mobile: true

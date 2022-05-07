@@ -4,6 +4,9 @@
 # PubH 7462 Final Project
 
 <!-- badges: start -->
+
+[![Netlify
+Status](https://api.netlify.com/api/v1/badges/194f5a87-db9e-4ddb-879e-cc48c79a2b67/deploy-status)](https://app.netlify.com/sites/btta/deploys)
 <!-- badges: end -->
 
 **Evolution of Major League Baseball from the Dead Ball Era to Post
